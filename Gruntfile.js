@@ -43,8 +43,8 @@ module.exports = function (grunt) {
                  '}\n',
     jqueryVersionCheck: '+function ($) {\n' +
                         '  var version = $.fn.jquery.split(\' \')[0].split(\'.\')\n' +
-                        '  if ((version[0] < 2 && version[1] < 9) || (version[0] == 1 && version[1] == 9 && version[2] < 1) || (version[0] >= 3)) {\n' +
-                        '    throw new Error(\'Bootstrap\\\'s JavaScript requires at least jQuery v1.9.1 but less than v3.0.0\')\n' +
+                        '  if ((version[0] < 2 && version[1] < 9) || (version[0] == 1 && version[1] == 9 && version[2] < 1) || (version[0] >= 4)) {\n' +
+                        '    throw new Error(\'Bootstrap\\\'s JavaScript requires at least jQuery v1.9.1 but less than v4.0.0\')\n' +
                         '  }\n' +
                         '}(jQuery);\n\n',
 
@@ -226,14 +226,14 @@ module.exports = function (grunt) {
     htmllint: {
       options: {
         ignore: [
-          'Element “img” is missing required attribute “src”.',
-          'Attribute “autocomplete” is only allowed when the input type is “color”, “date”, “datetime”, “datetime-local”, “email”, “month”, “number”, “password”, “range”, “search”, “tel”, “text”, “time”, “url”, or “week”.',
+          'Attribute “autocomplete” is only allowed when the input type is “color”, “date”, “datetime”, “datetime-local”, “email”, “hidden”, “month”, “number”, “password”, “range”, “search”, “tel”, “text”, “time”, “url”, or “week”.',
           'Attribute “autocomplete” not allowed on element “button” at this point.',
-          'Element “div” not allowed as child of element “progress” in this context. (Suppressing further errors from this subtree.)',
           'Consider using the “h1” element as a top-level heading only (all “h1” elements are treated as top-level headings by many screen readers and other tools).',
-          'The “datetime” input type is not supported in all browsers. Please be sure to test, and consider using a polyfill.',
+          'Element “div” not allowed as child of element “progress” in this context. (Suppressing further errors from this subtree.)',
+          'Element “img” is missing required attribute “src”.',
           'The “color” input type is not supported in all browsers. Please be sure to test, and consider using a polyfill.',
           'The “date” input type is not supported in all browsers. Please be sure to test, and consider using a polyfill.',
+          'The “datetime” input type is not supported in all browsers. Please be sure to test, and consider using a polyfill.',
           'The “datetime-local” input type is not supported in all browsers. Please be sure to test, and consider using a polyfill.',
           'The “month” input type is not supported in all browsers. Please be sure to test, and consider using a polyfill.',
           'The “time” input type is not supported in all browsers. Please be sure to test, and consider using a polyfill.',
@@ -277,6 +277,9 @@ module.exports = function (grunt) {
       },
       'postcss-docs': {
         command: 'npm run postcss-docs'
+      },
+      'upload-preview': {
+        command: './grunt/upload-preview.sh'
       }
     },
 
@@ -351,12 +354,13 @@ module.exports = function (grunt) {
   // Only run Sauce Labs tests if there's a Sauce access key
   if (typeof process.env.SAUCE_ACCESS_KEY !== 'undefined' &&
       // Skip Sauce if running a different subset of the test suite
-      runSubset('sauce-js-unit') &&
-      // Skip Sauce on Travis when [skip sauce] is in the commit message
-      isUndefOrNonZero(process.env.TWBS_DO_SAUCE)) {
-    testSubtasks.push('babel:dev');
-    testSubtasks.push('connect');
-    testSubtasks.push('saucelabs-qunit');
+      runSubset('sauce-js-unit')) {
+    testSubtasks = testSubtasks.concat(['dist', 'docs-css', 'docs-js', 'clean:docs', 'copy:docs', 'exec:upload-preview']);
+    // Skip Sauce on Travis when [skip sauce] is in the commit message
+    if (isUndefOrNonZero(process.env.TWBS_DO_SAUCE)) {
+      testSubtasks.push('connect');
+      testSubtasks.push('saucelabs-qunit');
+    }
   }
   grunt.registerTask('test', testSubtasks);
 
